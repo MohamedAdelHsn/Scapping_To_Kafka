@@ -96,4 +96,56 @@ It is the output data after transformation
 	}
   
   ```
+  
+ casting data from kafka json format into datafame (Structure data)
+ 
+ ```scala
+ 
+     
+    val spark = SparkSession.builder()
+    .appName("Near-Realtime_Stock_Tracking-App")
+    .master("local[2]")
+    .getOrCreate()
+    
+    
+    import spark.implicits._
+   
+    val df = spark.readStream
+    .format("kafka")
+    .option("kafka.bootstrap.servers", "localhost:9092")
+    .option("subscribe", "my_stock_topic")
+    .option("startingOffsets", "earliest")
+    .load()
+    
+    
+   // val df_Jsoncast = df.selectExpr("CAST(value AS STRING)")
+    
+    
+    // custom schema for stock    
+    val mySchema = new StructType()
+    .add("stock_Name" , StringType)
+    .add("last_Price" , DoubleType)
+    .add("stock_Change_Percentage" , StringType)
+    .add("stock_Change" , DoubleType)
+    .add("volume" , DoubleType)
+    .add("quantity" , DoubleType)
+    .add("open_Price" , DoubleType)
+    .add("high_price" , DoubleType)
+    .add("low_Price" , DoubleType)
+    .add("timeStamp" ,  TimestampType)
+    
+
+    
+   val stock_df = df.selectExpr("CAST(value AS STRING) as json")
+                    .select( from_json($"json",mySchema).as("data"))
+                    .select("data.*")
+ 
+ 
+  
+ ``` 
+Then apache spark with get Avg for every window for tracking high_price stock for each stock_name between intraval time
+ 
+
+
+  
 
