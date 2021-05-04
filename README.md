@@ -23,76 +23,67 @@ It is the output data after transformation
  
  lets go to extract data from mubasher
   ```java
-  public static ArrayList<StockObject> crawlStockTable() 
-	{
-		
+  
+ 	public static ArrayList<StockObject> crawlStockTable() {
+
 		ArrayList<StockObject> arrayOfStocks = new ArrayList<StockObject>();
-		
-		System.setProperty("webdriver.gecko.driver" ,"/home/hdpadmin/eclipse-workspace/geckodriver");
-		WebDriver wdriver = new FirefoxDriver(); 		
+
+		System.setProperty("webdriver.gecko.driver", "/home/hdpadmin/eclipse-workspace/geckodriver");
+		WebDriver wdriver = new FirefoxDriver();
 		wdriver.manage().window().maximize();
-				
-		// url 
+
+		// url
 		wdriver.get("https://www.mubasher.info/countries/eg/stock-prices");
-	
-		// good it works well 
+
+		// good it works well
 		try {
 			Thread.sleep(4000);
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
-		
+
 		int rows_size = wdriver.findElements(By.xpath("//*[@class='mi-table']/tbody/tr")).size();
-		System.out.println("Rows size = "+rows_size);
-		
+		System.out.println("Rows size = " + rows_size);
+
 		int cols_size = wdriver.findElements(By.xpath("//*[@class='mi-table']/thead/tr/th")).size();
-		System.out.println("Cols size = "+cols_size);
-		
-		for(int r = 1; r<= rows_size; r++) 
-		{
-		
+		System.out.println("Cols size = " + cols_size);
+
+		for (int r = 1; r <= rows_size; r++) {
+
 			StringJoiner joiner = new StringJoiner(" , ");
-			
-			for(int col= 1 ; col<= cols_size; col++) 
-			{
-										
-				joiner.add(wdriver
-						.findElement(By.xpath("//*[@class='mi-table']/tbody/tr["+r+"]/td["+col+"]"))
+
+			for (int col = 1; col <= cols_size; col++) {
+
+				joiner.add(wdriver.findElement(By.xpath("//*[@class='mi-table']/tbody/tr[" + r + "]/td[" + col + "]"))
 						.getText());
-				
+
 				/*
-				System.out.print(wdriver
-						.findElement(By.xpath("//*[@class='mi-table']/tbody/tr["+r+"]/td["+col+"]"))
-						.getText() +" ,");
-				*/
-				
+				 * System.out.print(wdriver
+				 * .findElement(By.xpath("//*[@class='mi-table']/tbody/tr["+r+"]/td["+col+"]"))
+				 * .getText() +" ,");
+				 */
+
 			}
-		
-			
-	         String [] splitter = joiner.toString().split(" , ");
-	         StockObject myStock = new StockObject();		 
-	         myStock.setStock_Name(splitter[0]);		 
-	         myStock.setLast_Price(Double.parseDouble(splitter[1]));
-		 myStock.setStock_Change_Percentage(splitter[2]);
-		 myStock.setStock_Change(Double.parseDouble(splitter[3].replace("`", "")));
-		 myStock.setVolume(Double.parseDouble(splitter[4].replaceAll(",", "")));
-		 myStock.setQuantity(Double.parseDouble(splitter[5].replaceAll(",", "")));
-		 myStock.setOpen_Price(Double.parseDouble(splitter[6]));
-		 myStock.setHigh_price(Double.parseDouble(splitter[7]));
-		 myStock.setLow_Price(Double.parseDouble(splitter[8]));
-                 myStock.setTimeStamp(new Timestamp(System.currentTimeMillis()).toString());
-		 
-                 arrayOfStocks.add(myStock);
-	
-			
+
+			String[] splitter = joiner.toString().split(" , ");
+			StockObject myStock = new StockObject();
+			myStock.setStock_Name(splitter[0]);
+			myStock.setLast_Price(Double.parseDouble(splitter[1]));
+			myStock.setStock_Change_Percentage(splitter[2]);
+			myStock.setStock_Change(Double.parseDouble(splitter[3].replace("`", "")));
+			myStock.setVolume(Double.parseDouble(splitter[4].replaceAll(",", "")));
+			myStock.setQuantity(Double.parseDouble(splitter[5].replaceAll(",", "")));
+			myStock.setOpen_Price(Double.parseDouble(splitter[6]));
+			myStock.setHigh_price(Double.parseDouble(splitter[7]));
+			myStock.setLow_Price(Double.parseDouble(splitter[8]));
+			myStock.setTimeStamp(new Timestamp(System.currentTimeMillis()).toString());
+			arrayOfStocks.add(myStock);
+
 		}
-		
-		
+
 		return arrayOfStocks;
 
-		
 	}
   
   ```
