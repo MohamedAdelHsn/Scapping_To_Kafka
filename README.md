@@ -69,7 +69,7 @@ It is the output data after transformation
 				*/
 				
 			}
-			
+	```java		
 			
 	         String [] splitter = joiner.toString().split(" , ");
 	         StockObject myStock = new StockObject();
@@ -85,8 +85,8 @@ It is the output data after transformation
                  myStock.setTimeStamp(new Timestamp(System.currentTimeMillis()).toString());
 		 
                  arrayOfStocks.add(myStock);
-			
-			
+		
+	```	
 			
 		}
 		
