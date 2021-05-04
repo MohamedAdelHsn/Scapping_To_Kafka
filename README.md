@@ -71,20 +71,20 @@ It is the output data after transformation
 			}
 			
 			
-			String [] splitter = joiner.toString().split(" , ");
-			StockObject myStock = new StockObject();
-			myStock.setStock_Name(splitter[0]);
-			myStock.setLast_Price(Double.parseDouble(splitter[1]));
-			myStock.setStock_Change_Percentage(splitter[2]);
+	         String [] splitter = joiner.toString().split(" , ");
+	         StockObject myStock = new StockObject();
+	         myStock.setStock_Name(splitter[0]);
+	         myStock.setLast_Price(Double.parseDouble(splitter[1]));
+		 myStock.setStock_Change_Percentage(splitter[2]);
 		 myStock.setStock_Change(Double.parseDouble(splitter[3].replace("`", "")));
 		 myStock.setVolume(Double.parseDouble(splitter[4].replaceAll(",", "")));
 		 myStock.setQuantity(Double.parseDouble(splitter[5].replaceAll(",", "")));
 		 myStock.setOpen_Price(Double.parseDouble(splitter[6]));
 		 myStock.setHigh_price(Double.parseDouble(splitter[7]));
 		 myStock.setLow_Price(Double.parseDouble(splitter[8]));
-   myStock.setTimeStamp(new Timestamp(System.currentTimeMillis()).toString());
+                 myStock.setTimeStamp(new Timestamp(System.currentTimeMillis()).toString());
 		 
-   arrayOfStocks.add(myStock);
+                 arrayOfStocks.add(myStock);
 			
 			
 			
