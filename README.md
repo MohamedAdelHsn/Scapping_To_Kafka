@@ -105,7 +105,7 @@ It is the output data after transformation
     .format("kafka")
     .option("kafka.bootstrap.servers", "localhost:9092")
     .option("subscribe", "my_stock_topic")
-    .option("startingOffsets", "earliest")
+    .option("startingOffsets", "earliest") // "latest"
     .load()
     
     
