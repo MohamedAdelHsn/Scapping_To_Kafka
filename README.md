@@ -4,11 +4,11 @@ In this app we will scapping data from [Egypt_stock_website : mubasher](https://
 using selenium webdriver (Note : Selenium is slower than JSoup because it waits for ajax script and js ..) <br />
 then serialize data into json objects to send it to apache kafka topic
 
-It is a snapshot of data in the website  <br />
+It is a snapshot of data in the website <br />
 ![2021-05-04 (2)](https://user-images.githubusercontent.com/58120325/116986630-4b35f580-acce-11eb-941c-eeac219d2d6c.png) <br /> 
 
 
-it is the output data after transformation
+It is the output data after transformation
  ```json
  {"stock_Name":"جلوبال تيلكوم","last_Price":4.99,"stock_Change_Percentage":"20.15%","stock_Change":0.8,"volume":49608.96,"quantity":10409.0,"open_Price":3.97,"high_price":5.0,"low_Price":2.5,"timeStamp":"2021-05-04 09:59:04.666"}
 {"stock_Name":"سوهاج الوطنية","last_Price":3.99,"stock_Change_Percentage":"15.20%","stock_Change":0.5,"volume":80462.0,"quantity":21210.0,"open_Price":3.29,"high_price":4.0,"low_Price":3.72,"timeStamp":"2021-05-04 09:59:05.048"}
