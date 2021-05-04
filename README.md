@@ -69,11 +69,11 @@ It is the output data after transformation
 				*/
 				
 			}
-	```java		
+		
 			
 	         String [] splitter = joiner.toString().split(" , ");
-	         StockObject myStock = new StockObject();
-	         myStock.setStock_Name(splitter[0]);
+	         StockObject myStock = new StockObject();		 
+	         myStock.setStock_Name(splitter[0]);		 
 	         myStock.setLast_Price(Double.parseDouble(splitter[1]));
 		 myStock.setStock_Change_Percentage(splitter[2]);
 		 myStock.setStock_Change(Double.parseDouble(splitter[3].replace("`", "")));
@@ -85,8 +85,7 @@ It is the output data after transformation
                  myStock.setTimeStamp(new Timestamp(System.currentTimeMillis()).toString());
 		 
                  arrayOfStocks.add(myStock);
-		
-	```	
+	
 			
 		}
 		
