@@ -5,7 +5,8 @@ using selenium webdriver (Note : Selenium is slower than JSoup because it waits 
 then serialize data into json objects to send it to apache kafka topic
 
 It is a snapshot of data in the website <br />
-![2021-05-04 (2)](https://user-images.githubusercontent.com/58120325/116986630-4b35f580-acce-11eb-941c-eeac219d2d6c.png) <br /> 
+
+ ![2021-05-04 (2)](https://user-images.githubusercontent.com/58120325/116986630-4b35f580-acce-11eb-941c-eeac219d2d6c.png) <br /> 
 
 
 It is the output data after transformation
