@@ -141,7 +141,7 @@ Then apache spark with get Avg for every window for tracking high_price stock fo
    val tumblingWindowAggregations = stock_df
      .withWatermark("timeStamp", "10 minutes")
       .groupBy(
-        window(col("timeStamp"), "1 seconds"),
+        window(col("timeStamp"), "50 seconds"),
         col("stock_Name")
       )
       .agg(avg(col("high_price")))
