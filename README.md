@@ -136,6 +136,32 @@ It is the output data after transformation
  ``` 
 Then apache spark with get Avg for every window for tracking high_price stock for each stock_name between intraval time
  
+ ```scala
+     
+   val tumblingWindowAggregations = stock_df
+     .withWatermark("timeStamp", "10 minutes")
+      .groupBy(
+        window(col("timeStamp"), "1 seconds"),
+        col("stock_Name")
+      )
+      .agg(avg(col("high_price")))
+  
+  
+``` 
+
+final outputs are as the same stored in filesystem as json format
+
+```json
+
+{"window":{"start":"2021-05-04T09:38:45.000+02:00","end":"2021-05-04T09:38:50.000+02:00"},"stock_Name":"النيل للادوية","avg(high_price)":35.88}
+{"window":{"start":"2021-05-04T09:00:50.000+02:00","end":"2021-05-04T09:00:55.000+02:00"},"stock_Name":"مطاحن ومخابز الإسكند","avg(high_price)":10.84}
+{"window":{"start":"2021-05-04T09:01:15.000+02:00","end":"2021-05-04T09:01:20.000+02:00"},"stock_Name":"مصر للالومنيوم","avg(high_price)":13.66}
+{"window":{"start":"2021-05-04T09:01:10.000+02:00","end":"2021-05-04T09:01:15.000+02:00"},"stock_Name":"القلعة للاستشارات ال","avg(high_price)":1.31}
+{"window":{"start":"2021-05-04T09:11:45.000+02:00","end":"2021-05-04T09:11:50.000+02:00"},"stock_Name":"بنك قناة السويس","avg(high_price)":10.0}
+
+```
+
+ 
 
 
   
