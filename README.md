@@ -1,7 +1,7 @@
 # Scapping_To_Kafka
 
-In this app we will scapping data from [Egypt_stock_website : mubasher](https://www.mubasher.info/countries/eg/stock-prices) 
-using selenium webdriver (Note : Selenium is slower than JSoup because it waits for ajax script and js ..) <br />
+In this app we will scapping data from [Egypt_stock_website : mubasher](https://www.investing.com/equities/egypt) 
+using Jsoup webdriver (Note :  yoou can use Selenium but it is slower than JSoup because it waits for ajax script and js ..) <br />
 then serialize data into json objects to send it to apache kafka topic
 
 It is a snapshot of data in the website <br />
@@ -21,143 +21,124 @@ It is the output data after transformation
 
  ```
  
- lets go to extract data from mubasher
+ lets go to extract data from stock_website
   ```java
   
- 	public static ArrayList<StockObject> crawlStockTable() {
+ 	private static ArrayList<StockObject> crawlStockTable() {
 
-		ArrayList<StockObject> arrayOfStocks = new ArrayList<StockObject>();
+		final String url = "https://www.investing.com/equities/egypt";
 
-		System.setProperty("webdriver.gecko.driver", "/home/hdpadmin/eclipse-workspace/geckodriver");
-		WebDriver wdriver = new FirefoxDriver();
-		wdriver.manage().window().maximize();
+		ArrayList<StockObject> objects = new ArrayList<StockObject>();
 
-		// url
-		wdriver.get("https://www.mubasher.info/countries/eg/stock-prices");
-
-		// good it works well
 		try {
-			Thread.sleep(4000);
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
 
-		int rows_size = wdriver.findElements(By.xpath("//*[@class='mi-table']/tbody/tr")).size();
-		System.out.println("Rows size = " + rows_size);
+			final Document document = Jsoup.connect(url).timeout(50 * 1000).get();
 
-		int cols_size = wdriver.findElements(By.xpath("//*[@class='mi-table']/thead/tr/th")).size();
-		System.out.println("Cols size = " + cols_size);
+			for (Element row : document.select("#cross_rate_markets_stocks_1 > tbody:nth-child(2) tr")) {
 
-		for (int r = 1; r <= rows_size; r++) {
+				final String Stock_name = row.select("td:nth-child(2) > a:nth-child(1)").text();
 
-			StringJoiner joiner = new StringJoiner(" , ");
+				final double last_price = Double.parseDouble(row.select("td:nth-child(3)").text());
 
-			for (int col = 1; col <= cols_size; col++) {
+				final double high_price = Double.parseDouble(row.select("td:nth-child(4)").text());
 
-				joiner.add(wdriver.findElement(By.xpath("//*[@class='mi-table']/tbody/tr[" + r + "]/td[" + col + "]"))
-						.getText());
+				final double low_price = Double.parseDouble(row.select("td:nth-child(5)").text());
 
-				/*
-				 * System.out.print(wdriver
-				 * .findElement(By.xpath("//*[@class='mi-table']/tbody/tr["+r+"]/td["+col+"]"))
-				 * .getText() +" ,");
-				 */
+				final double stock_Change = Double.parseDouble(row.select("td:nth-child(6)").text());
+
+				final double stock_change_perc = Double
+						.parseDouble(row.select("td:nth-child(7)").text().replaceAll("%", ""));
+
+				final double vol = Utility.currencyMatcher(row.select("td:nth-child(8)").text());
+
+				final String time = row.select("td:nth-child(9)").text();
+
+				final String timeStamp = new Timestamp(System.currentTimeMillis()).toString();
+
+				StockObject myStock = new StockObject(Stock_name, last_price, stock_change_perc, stock_Change, vol,
+						high_price, low_price, time, timeStamp);
+
+				objects.add(myStock);
 
 			}
 
-			String[] splitter = joiner.toString().split(" , ");
-			StockObject myStock = new StockObject();
-			myStock.setStock_Name(splitter[0]);
-			myStock.setLast_Price(Double.parseDouble(splitter[1]));
-			myStock.setStock_Change_Percentage(splitter[2]);
-			myStock.setStock_Change(Double.parseDouble(splitter[3].replace("`", "")));
-			myStock.setVolume(Double.parseDouble(splitter[4].replaceAll(",", "")));
-			myStock.setQuantity(Double.parseDouble(splitter[5].replaceAll(",", "")));
-			myStock.setOpen_Price(Double.parseDouble(splitter[6]));
-			myStock.setHigh_price(Double.parseDouble(splitter[7]));
-			myStock.setLow_Price(Double.parseDouble(splitter[8]));
-			myStock.setTimeStamp(new Timestamp(System.currentTimeMillis()).toString());
-			arrayOfStocks.add(myStock);
-
+		} catch (Exception ex) {
+			ex.printStackTrace();
 		}
 
-		return arrayOfStocks;
+		return objects;
 
-	}
+	}	
   
   ```
   
- casting data from kafka json format into datafame (Structure data)
+ producing data to kafka topic with scheduling task manually using java
  
- ```scala
+ ```java
  
-     
-    val spark = SparkSession.builder()
-    .appName("Near-Realtime_Stock_Tracking-App")
-    .master("local[2]")
-    .getOrCreate()
-    
-    
-    import spark.implicits._
-   
-    val df = spark.readStream
-    .format("kafka")
-    .option("kafka.bootstrap.servers", "localhost:9092")
-    .option("subscribe", "my_stock_topic")
-    .option("startingOffsets", "earliest") // "latest"
-    .load()
-    
-    
-   // val df_Jsoncast = df.selectExpr("CAST(value AS STRING)")
-    
-    
-    // custom schema for stock    
-    val mySchema = new StructType()
-    .add("stock_Name" , StringType)
-    .add("last_Price" , DoubleType)
-    .add("stock_Change_Percentage" , StringType)
-    .add("stock_Change" , DoubleType)
-    .add("volume" , DoubleType)
-    .add("quantity" , DoubleType)
-    .add("open_Price" , DoubleType)
-    .add("high_price" , DoubleType)
-    .add("low_Price" , DoubleType)
-    .add("timeStamp" ,  TimestampType)
-    
+ Timer timer = new Timer();
 
-    
-   val stock_df = df.selectExpr("CAST(value AS STRING) as json")
-                    .select( from_json($"json",mySchema).as("data"))
-                    .select("data.*")
- 
- 
+		TimerTask mytask1 = new TimerTask() {
+
+			@Override
+			public void run() {
+
+				Properties props = new Properties();
+				props.put(ProducerConfig.CLIENT_ID_CONFIG, "my-partition-examples");
+				props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
+				props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+				props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
+
+				KafkaProducer<String, StockObject> producer = new KafkaProducer(props);
+				Iterator i = crawlStockTable().iterator();
+
+				while (i.hasNext()) {
+
+					ProducerRecord<String, StockObject> record = new ProducerRecord<String, StockObject>(
+							"my_stock_topic", (StockObject) i.next());
+
+					producer.send(record);
+
+					try {
+						Thread.sleep(200);
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+
+				}
+
+			}
+		};
+
+		timer.schedule(mytask1, 0, 15 * 1000);
+		mytask1.run();
+     
+   
   
  ``` 
-Then apache spark with get Avg for every window for tracking high_price stock for each stock_name between intraval time
- 
- ```scala
-     
-   val tumblingWindowAggregations = stock_df
-     .withWatermark("timeStamp", "10 minutes")
-      .groupBy(
-        window(col("timeStamp"), "50 seconds"),
-        col("stock_Name")
-      )
-      .agg(avg(col("high_price")))
-  
-  
-``` 
+
 
 final outputs are as the same stored in filesystem as json format
 
 ```json
 
-{"window":{"start":"2021-05-04T09:38:45.000+02:00","end":"2021-05-04T09:38:50.000+02:00"},"stock_Name":"النيل للادوية","avg(high_price)":35.88}
-{"window":{"start":"2021-05-04T09:00:50.000+02:00","end":"2021-05-04T09:00:55.000+02:00"},"stock_Name":"مطاحن ومخابز الإسكند","avg(high_price)":10.84}
-{"window":{"start":"2021-05-04T09:01:15.000+02:00","end":"2021-05-04T09:01:20.000+02:00"},"stock_Name":"مصر للالومنيوم","avg(high_price)":13.66}
-{"window":{"start":"2021-05-04T09:01:10.000+02:00","end":"2021-05-04T09:01:15.000+02:00"},"stock_Name":"القلعة للاستشارات ال","avg(high_price)":1.31}
-{"window":{"start":"2021-05-04T09:11:45.000+02:00","end":"2021-05-04T09:11:50.000+02:00"},"stock_Name":"بنك قناة السويس","avg(high_price)":10.0}
+{"stock_Name":"Hermes Holding Co","last_Price":14.2,"stock_Change_Percentage":0.0,"stock_Change":0.0,"volume":0.0,"high_price":14.35,"low_Price":14.06,"time":"07:29:43","timeStamp":"2021-05-05 16:07:03.99"}
+{"stock_Name":"Hermes Holding Co","last_Price":14.2,"stock_Change_Percentage":0.0,"stock_Change":0.0,"volume":0.0,"high_price":14.35,"low_Price":14.06,"time":"07:29:43","timeStamp":"2021-05-05 16:07:03.925"}
+{"stock_Name":"SODIC","last_Price":16.6,"stock_Change_Percentage":0.0,"stock_Change":0.0,"volume":0.0,"high_price":17.0,"low_Price":16.57,"time":"07:29:25","timeStamp":"2021-05-05 16:07:03.996"}
+{"stock_Name":"SODIC","last_Price":16.6,"stock_Change_Percentage":0.0,"stock_Change":0.0,"volume":0.0,"high_price":17.0,"low_Price":16.57,"time":"07:29:25","timeStamp":"2021-05-05 16:07:03.926"}
+{"stock_Name":"Palm Hills Develop","last_Price":1.589,"stock_Change_Percentage":0.0,"stock_Change":0.0,"volume":0.0,"high_price":1.6,"low_Price":1.572,"time":"07:29:58","timeStamp":"2021-05-05 16:07:03.997"}
+{"stock_Name":"Palm Hills Develop","last_Price":1.589,"stock_Change_Percentage":0.0,"stock_Change":0.0,"volume":0.0,"high_price":1.6,"low_Price":1.572,"time":"07:29:58","timeStamp":"2021-05-05 16:07:03.927"}
+{"stock_Name":"Pioneers Holding","last_Price":4.1,"stock_Change_Percentage":0.0,"stock_Change":0.0,"volume":0.0,"high_price":4.11,"low_Price":3.9,"time":"07:29:41","timeStamp":"2021-05-05 16:07:03.997"}
+{"stock_Name":"Pioneers Holding","last_Price":4.1,"stock_Change_Percentage":0.0,"stock_Change":0.0,"volume":0.0,"high_price":4.11,"low_Price":3.9,"time":"07:29:41","timeStamp":"2021-05-05 16:07:03.928"}
+{"stock_Name":"Sidi Kerir","last_Price":10.32,"stock_Change_Percentage":0.0,"stock_Change":0.0,"volume":0.0,"high_price":10.45,"low_Price":10.1,"time":"07:26:57","timeStamp":"2021-05-05 16:07:04.007"}
+{"stock_Name":"Sidi Kerir","last_Price":10.32,"stock_Change_Percentage":0.0,"stock_Change":0.0,"volume":0.0,"high_price":10.45,"low_Price":10.1,"time":"07:26:57","timeStamp":"2021-05-05 16:07:03.938"}
+{"stock_Name":"El Sewedy Electric","last_Price":8.17,"stock_Change_Percentage":0.0,"stock_Change":0.0,"volume":0.0,"high_price":8.25,"low_Price":8.06,"time":"07:29:07","timeStamp":"2021-05-05 16:07:04.008"}
+{"stock_Name":"El Sewedy Electric","last_Price":8.17,"stock_Change_Percentage":0.0,"stock_Change":0.0,"volume":0.0,"high_price":8.25,"low_Price":8.06,"time":"07:29:07","timeStamp":"2021-05-05 16:07:03.939"}
+{"stock_Name":"T M G Holding","last_Price":5.72,"stock_Change_Percentage":0.0,"stock_Change":0.0,"volume":0.0,"high_price":5.72,"low_Price":5.65,"time":"07:29:52","timeStamp":"2021-05-05 16:07:04.008"}
+{"stock_Name":"T M G Holding","last_Price":5.72,"stock_Change_Percentage":0.0,"stock_Change":0.0,"volume":0.0,"high_price":5.72,"low_Price":5.65,"time":"07:29:52","timeStamp":"2021-05-05 16:07:03.94"}
+{"stock_Name":"GB AUTO","last_Price":3.28,"stock_Change_Percentage":0.0,"stock_Change":0.0,"volume":0.0,"high_price":3.4,"low_Price":3.27,"time":"07:29:53","timeStamp":"2021-05-05 16:07:04.009"}
+{"stock_Name":"GBAUTO","last_Price":3.28,"stock_Change_Percentage":0.0,"stock_Change":0.0,"volume":0.0,"high_price":3.4,"low_Price":3.27,"time":"07:29:53","timeStamp":"2021-05-05 16:07:03.941"}
 
 ```
 
