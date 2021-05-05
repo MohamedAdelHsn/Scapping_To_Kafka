@@ -1,6 +1,6 @@
 # Scapping_To_Kafka
 
-In this app we will scapping data from [Egypt_stock_website : mubasher](https://www.investing.com/equities/egypt) 
+In this app we will scapping data from [Egypt_stock_website](https://www.investing.com/equities/egypt) 
 using Jsoup webdriver (Note :  yoou can use Selenium but it is slower than JSoup because it waits for ajax script and js ..) <br />
 then serialize data into json objects to send it to apache kafka topic
 
