@@ -3,141 +3,116 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Properties;
-import java.util.StringJoiner;
-import org.apache.kafka.common.serialization.StringSerializer;
-import org.openqa.selenium.By;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.firefox.FirefoxDriver;
+import java.util.Timer;
+import java.util.TimerTask;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.common.serialization.StringSerializer;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 
-public class Stock_Producer {
 
-	public static void main(String [] args ) 
-	{
-		
-		// Initialize kafka properties to prepare producer		
-		Properties props = new Properties();
-		props.put(ProducerConfig.CLIENT_ID_CONFIG, "my-partition-examples");
-		props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
-		props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
-		props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
-		
-		
-		KafkaProducer<String,StockObject> producer = new KafkaProducer(props);				
-       // produce selenium messages into kafka topics and serialize it to json object 
-		
-		while(true) {
-		
-	    Iterator i = crawlStockTable().iterator();
-    	System.out.println("records iterators ");
+public class Producer {
 
-	    while(i.hasNext())
-	    {
-	    	
-	    	ProducerRecord<String, StockObject> record = 
-	    			new ProducerRecord<String, StockObject>("my_stock_topic" , (StockObject) i.next());
-	    	
-	    	producer.send(record);
-	    	  try {
-	   			Thread.sleep(500);
-	   		} catch (InterruptedException e) {
-	   			// TODO Auto-generated catch block
-	   			e.printStackTrace();
-	   		}
-	  	    
-	  		}
-	
-	    	
+	public static void main(String[] args) {
+		
 
-	    try {
- 			Thread.sleep(1000);
- 		} catch (InterruptedException e) {
- 			// TODO Auto-generated catch block
- 			e.printStackTrace();
- 		}
-	    
-	}
+		
+		// scheduling task manual using java to produce data to kafka evey n time		
+		Timer timer = new Timer();
 
-	    
-	}
-		
-		 
-	
-	
-	
-	public static ArrayList<StockObject> crawlStockTable() 
-	{
-		
-		ArrayList<StockObject> arrayOfStocks = new ArrayList<StockObject>();
-		
-		System.setProperty("webdriver.gecko.driver" ,"/home/hdpadmin/eclipse-workspace/geckodriver");
-		WebDriver wdriver = new FirefoxDriver(); 		
-		wdriver.manage().window().maximize();
-				
-		// url 
-		wdriver.get("https://www.mubasher.info/countries/eg/stock-prices");
-	
-		// good it works well 
-		try {
-			Thread.sleep(4000);
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
-		
-		int rows_size = wdriver.findElements(By.xpath("//*[@class='mi-table']/tbody/tr")).size();
-		System.out.println("Rows size = "+rows_size);
-		
-		int cols_size = wdriver.findElements(By.xpath("//*[@class='mi-table']/thead/tr/th")).size();
-		System.out.println("Cols size = "+cols_size);
-		
-		for(int r = 1; r<= rows_size; r++) 
-		{
-		
-			StringJoiner joiner = new StringJoiner(" , ");
+		TimerTask mytask1 = new TimerTask() {
+
+			@Override
+			public void run() {
+
+				Properties props = new Properties();
+				props.put(ProducerConfig.CLIENT_ID_CONFIG, "my-partition-examples");
+				props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
+				props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+				props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
+
+				KafkaProducer<String, StockObject> producer = new KafkaProducer(props);
+				Iterator i = crawlStockTable().iterator();
+
+				while (i.hasNext()) {
+
+					ProducerRecord<String, StockObject> record = new ProducerRecord<String, StockObject>(
+							"my_stock_topic", (StockObject) i.next());
+
+					producer.send(record);
+
+					try {
+						Thread.sleep(200);
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+
+				}
 			
-			for(int col= 1 ; col<= cols_size; col++) 
-			{
-										
-				joiner.add(wdriver
-						.findElement(By.xpath("//*[@class='mi-table']/tbody/tr["+r+"]/td["+col+"]"))
-						.getText());
-				
-				/*
-				System.out.print(wdriver
-						.findElement(By.xpath("//*[@class='mi-table']/tbody/tr["+r+"]/td["+col+"]"))
-						.getText() +" ,");
-				*/
-				
+
 			}
-			
-			
-			  String [] splitter = joiner.toString().split(" , ");
-			  StockObject myStock = new StockObject();
-			  myStock.setStock_Name(splitter[0]);
-			  myStock.setLast_Price(Double.parseDouble(splitter[1]));
-			  myStock.setStock_Change_Percentage(splitter[2]);
-		    myStock.setStock_Change(Double.parseDouble(splitter[3].replace("`", "")));
-		    myStock.setVolume(Double.parseDouble(splitter[4].replaceAll(",", "")));
-		    myStock.setQuantity(Double.parseDouble(splitter[5].replaceAll(",", "")));
-		    myStock.setOpen_Price(Double.parseDouble(splitter[6]));
-		    myStock.setHigh_price(Double.parseDouble(splitter[7]));
-		    myStock.setLow_Price(Double.parseDouble(splitter[8]));
-        myStock.setTimeStamp(new Timestamp(System.currentTimeMillis()).toString());
-		    arrayOfStocks.add(myStock);
-			
-			
-			
-		}
-		
-		
-		return arrayOfStocks;
+				
+		};
 
+		timer.schedule(mytask1, 0, 15 * 1000);
+		mytask1.run();
 		
+		
+
 	}
 	
-	
-}
+	private static ArrayList<StockObject> crawlStockTable() {
+
+		final String url = "https://www.investing.com/equities/egypt";
+
+		ArrayList<StockObject> objects = new ArrayList<StockObject>();
+
+		try {
+
+			final Document document = Jsoup.connect(url).timeout(50 * 1000).get();
+
+			for (Element row : document.select("#cross_rate_markets_stocks_1 > tbody:nth-child(2) tr")) {
+
+				final String Stock_name = row.select("td:nth-child(2) > a:nth-child(1)").text();
+
+				final double last_price = Double.parseDouble(row.select("td:nth-child(3)").text());
+
+				final double high_price = Double.parseDouble(row.select("td:nth-child(4)").text());
+
+				final double low_price = Double.parseDouble(row.select("td:nth-child(5)").text());
+
+				final double stock_Change = Double.parseDouble(row.select("td:nth-child(6)").text());
+
+				final double stock_change_perc = Double
+						.parseDouble(row.select("td:nth-child(7)").text().replaceAll("%", ""));
+
+				final double vol = Utility.currencyMatcher(row.select("td:nth-child(8)").text());
+
+				final String time = row.select("td:nth-child(9)").text();
+
+				final String timeStamp = new Timestamp(System.currentTimeMillis()).toString();
+
+				StockObject myStock = new StockObject(Stock_name, last_price, stock_change_perc, stock_Change, vol,
+						high_price, low_price, time, timeStamp);
+
+				objects.add(myStock);
+
+			}
+
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+
+		return objects;
+
+	}
+		
+		
+		
+	}
+
+
