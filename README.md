@@ -1,7 +1,7 @@
-# Scapping_To_Kafka
+# Scapping_To_Kafka_Demo
 
 In this app we will scapping data from [Egypt_stock_website](https://www.investing.com/equities/egypt) 
-using Jsoup webdriver (Note :  yoou can use Selenium but it is slower than JSoup because it waits for ajax script and js ..) <br />
+using Jsoup webdriver (Note :  you can use Selenium but it is slower than JSoup because it waits for ajax script and renders) <br />
 then serialize data into json objects to send it to apache kafka topic
 
 It is a snapshot of data in the website <br />
