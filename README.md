@@ -146,6 +146,31 @@ What is maven repos you need to do this demo ?
 
 ```xml
 
+  <dependencies>
+        <dependency>
+            <groupId>org.apache.kafka</groupId>
+            <artifactId>kafka-clients</artifactId>
+            <version>2.4.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-slf4j-impl</artifactId>
+            <version>2.11.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>2.11.0</version>
+            
+           </dependency>
+            <!-- https://mvnrepository.com/artifact/org.jsoup/jsoup -->
+     <dependency>
+       <groupId>org.jsoup</groupId>
+       <artifactId>jsoup</artifactId>
+       <version>1.13.1</version>
+     </dependency>
+     
+ </dependencies>
 
 
 ```
