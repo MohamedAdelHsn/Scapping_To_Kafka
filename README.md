@@ -1,6 +1,6 @@
 # Scapping_To_Kafka_Demo
 
-In this demo we will scapping data from [Egypt_stock_website](https://www.investing.com/equities/egypt) 
+In this demo we will scraping data from [Egypt_stock_website](https://www.investing.com/equities/egypt) 
 using Jsoup (Note :  you can use Selenium but it is slower than JSoup because it waits for ajax script and renders) <br />
 then serialize data into json objects to send it to apache kafka topic
 
