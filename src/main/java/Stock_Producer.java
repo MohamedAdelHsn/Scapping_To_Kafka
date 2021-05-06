@@ -14,7 +14,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 
 
-public class Producer {
+public class Stock_Producer {
 
 	public static void main(String[] args) {
 		
