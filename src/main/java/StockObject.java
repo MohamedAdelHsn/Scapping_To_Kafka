@@ -1,12 +1,12 @@
 public class StockObject {
 
-  
-	private String stock_Name;
-	private double last_Price;
-	private double stock_Change_Percentage;
-	private double stock_Change;
-	private double volume;
-	private double high_price;
+	
+  private String stock_Name;
+  private double last_Price;
+  private double stock_Change_Percentage;
+  private double stock_Change;
+  private double volume;
+  private double high_price;
   private double low_Price;
   private String time;
   private String timeStamp;
